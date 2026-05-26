@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
+
+# SQLite write-ahead / shared-memory files (volatile companions to the .db)
+*.db-shm
+*.db-wal
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Local data caches + backups (large, regenerable, don't belong in source)
+archive/
+
+# Local env
+.env
+.env.local
+
+# Backup files
+archive/*.backup-*.py

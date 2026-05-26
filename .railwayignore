@@ -1,0 +1,35 @@
+# Keep deploy bundle small — these are source materials and caches, not runtime assets
+official-pdfs/
+img-cache/
+ocr/
+ocr_pdf.py
+ocr.swift
+downloads-raw-cache/
+archive-books/
+
+# Logs and backups
+*.log
+*.backup-pre-redesign.py
+
+# Build/scratch
+__pycache__/
+*.pyc
+.DS_Store
+.python-version
+.venv/
+venv/
+
+# Local-only data files we don't ship
+official_act_test_inventory.csv
+official_act_test_inventory.json
+official_act_test_inventory.md
+web_official_act_inventory.csv
+web_official_act_inventory.json
+web_official_act_inventory.md
+
+# Side-by-side WAL/SHM (gunicorn opens fresh)
+crackab.db-shm
+crackab.db-wal
+
+# Importers/scrapers are dev-only — uncomment to also exclude
+# (kept by default so you can run them in a Railway shell if needed)
