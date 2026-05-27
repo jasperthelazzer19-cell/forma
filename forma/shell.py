@@ -262,7 +262,7 @@ SIDEBAR_TMPL = """<aside class="sb">
   </div>
   <div class="sb-section">
     <div class="sb-section-label">Workspace</div>
-    <a class="nav-item {a_home}" href="/"><span class="ic">⌂</span>Today</a>
+    <a class="nav-item {a_home}" href="/app"><span class="ic">⌂</span>Today</a>
     <a class="nav-item {a_full}" href="/full-test"><span class="ic">⏱</span>Full tests</a>
     <a class="nav-item {a_topics}" href="/topics"><span class="ic">◆</span>Topics</a>
     <a class="nav-item {a_review}" href="/review"><span class="ic">⟳</span>Review</a>
@@ -293,7 +293,7 @@ PALETTE_HTML = """<div class="palette-overlay" id="palette" onclick="if(event.ta
     <input id="palette-input" placeholder="Type to search drills, sections, or jump to a page…" />
     <div class="palette-section-label">Jump to</div>
     <div class="palette-results" id="palette-results">
-      <a class="palette-item on" href="/"><span class="pi">⌂</span><span class="pname">Today</span><span class="pmeta">G H</span></a>
+      <a class="palette-item on" href="/app"><span class="pi">⌂</span><span class="pname">Today</span><span class="pmeta">G H</span></a>
       <a class="palette-item" href="/full-test"><span class="pi">⏱</span><span class="pname">Full tests</span><span class="pmeta">G F</span></a>
       <a class="palette-item" href="/review"><span class="pi">⟳</span><span class="pname">Review wrong answers</span><span class="pmeta">G R</span></a>
       <a class="palette-item" href="/adaptive"><span class="pi">◎</span><span class="pname">Adaptive practice</span><span class="pmeta">G A</span></a>

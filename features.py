@@ -28,7 +28,7 @@ def topbar(active=None):
     title = _CRUMB_TITLES.get(active or "home", "Forma")
     return f'''<div class="app">{sidebar}<main class="main">
 <header class="topbar">
-  <div class="crumbs"><a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>{title}</b></div>
+  <div class="crumbs"><a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>{title}</b></div>
   <div class="top-actions">
     <button class="btn ghost" onclick="openPalette()"><span class="kbd">⌘K</span> Quick jump</button>
   </div>
@@ -349,7 +349,7 @@ DASHBOARD_HTML = """
       <div style="font-size:42px;margin-bottom:12px">📊</div>
       <div style="font-family:var(--serif);font-size:22px;color:var(--fg);margin-bottom:8px">No data yet</div>
       <div style="margin-bottom:18px">Take any test — score, weak topics, projected ACT, and trends all populate from there.</div>
-      <a href="/" style="background:var(--accent);color:#0b1220;padding:11px 22px;border-radius:7px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none">Pick a test →</a>
+      <a href="/app" style="background:var(--accent);color:#0b1220;padding:11px 22px;border-radius:7px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none">Pick a test →</a>
     </div>
   {% endif %}
 
@@ -717,7 +717,7 @@ ADAPTIVE_HTML = """
     <div class="strategy">
       <h3>No history yet</h3>
       <p class="why">Take a few tests in any section first so we have something to adapt from. Even one test gives us signal.</p>
-      <a href="/" class="btn">Go pick a test →</a>
+      <a href="/app" class="btn">Go pick a test →</a>
     </div>
   {% else %}
     <div class="strategy">
@@ -1263,7 +1263,7 @@ TOPICS_HTML = """
 {{ sidebar|safe }}
 <main class="main">
   <header class="topbar">
-    <div class="crumbs"><a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Topics</b></div>
+    <div class="crumbs"><a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Topics</b></div>
     <div class="top-actions">
       <button class="btn ghost" onclick="openPalette()"><span class="kbd">⌘K</span> Quick jump</button>
     </div>
@@ -1434,7 +1434,7 @@ BOOKMARKS_HTML = """
 {{ sidebar|safe }}
 <main class="main">
   <header class="topbar">
-    <div class="crumbs"><a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Bookmarks</b></div>
+    <div class="crumbs"><a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Bookmarks</b></div>
     <div class="top-actions">
       <button class="btn ghost" onclick="openPalette()"><span class="kbd">⌘K</span> Quick jump</button>
     </div>

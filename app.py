@@ -230,7 +230,7 @@ HOME_HTML = """
 </body></html>
 """
 
-@app.route("/")
+@app.route("/app")
 def home():
     cur = db().cursor()
     # Total attempts → drives onboarding empty-state
@@ -408,7 +408,7 @@ SECTION_HTML = """
 {{ sidebar|safe }}
 <main class="main">
 <header class="topbar">
-  <div class="crumbs"><a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>{{ section_label }}</b></div>
+  <div class="crumbs"><a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>{{ section_label }}</b></div>
   <div class="top-actions">
     <button class="btn ghost" onclick="openPalette()"><span class="kbd">⌘K</span> Quick jump</button>
   </div>
@@ -1057,7 +1057,7 @@ TEST_HTML = """
 </style></head><body>
 <header class="topbar">
   <div class="crumbs">
-    <a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span>
+    <a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span>
     <a href="/section/{{ test.section }}" style="color:var(--muted)">{{ section_label }}</a><span class="sep">▸</span>
     <b>Test {{ display_num }}</b>
   </div>
@@ -1627,7 +1627,7 @@ OFFICIAL_HTML = """
 {{ sidebar|safe }}
 <main class="main">
   <header class="topbar">
-    <div class="crumbs"><a href="/" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Official forms</b></div>
+    <div class="crumbs"><a href="/app" style="color:var(--muted)">Workspace</a><span class="sep">▸</span><b>Official forms</b></div>
     <div class="top-actions">
       <button class="btn ghost" onclick="openPalette()"><span class="kbd">⌘K</span> Quick jump</button>
     </div>

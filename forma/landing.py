@@ -227,7 +227,7 @@ footer{
     <a href="#method">Method</a>
     <a href="#inventory">Inventory</a>
     <a href="#pricing">Pricing</a>
-    <a class="nav-cta" href="/">launch app →</a>
+    <a class="nav-cta" href="/app">launch app →</a>
   </div>
 </nav>
 
@@ -236,7 +236,7 @@ footer{
   <h1 class="h1">The complete ACT,<br><span class="strike">// drilled.</span></h1>
   <p class="sub">Every official ACT question, indexed and searchable. An adaptive engine that targets your weak spots. A tutor that explains <b>why</b> the right answer is right — and remembers what you missed.</p>
   <div class="ctas">
-    <a class="btn btn-p" href="/">Start drilling <span class="arr">→</span></a>
+    <a class="btn btn-p" href="/app">Start drilling <span class="arr">→</span></a>
     <a class="btn btn-s mono" href="#inventory">view_inventory()</a>
   </div>
 
@@ -330,7 +330,7 @@ footer{
   <h2>Drill the next one.</h2>
   <p>17,218 questions are waiting. The engine already knows your weak spots.</p>
   <div class="ctas" style="margin-bottom:0">
-    <a class="btn btn-p" href="/">Start drilling <span class="arr">→</span></a>
+    <a class="btn btn-p" href="/app">Start drilling <span class="arr">→</span></a>
     <a class="btn btn-s mono" href="/full-test">view_official_tests()</a>
   </div>
 </div>
@@ -497,7 +497,7 @@ footer{
     <a href="#two">Inventory</a>
     <a href="#three">Tutor</a>
   </div>
-  <a class="nav-cta" href="/">Enter</a>
+  <a class="nav-cta" href="/app">Enter</a>
 </nav>
 
 <section class="ch" id="one">
@@ -505,7 +505,7 @@ footer{
   <h1 class="display">There is a <em>better way</em><br>to study for the&nbsp;ACT.</h1>
   <p class="lede">Most prep teaches you tricks. Forma teaches you the test — every released form, indexed and explained, with a tutor that remembers what you missed.</p>
   <div class="cta-row">
-    <a class="cta-primary" href="/">Begin →</a>
+    <a class="cta-primary" href="/app">Begin →</a>
     <a class="cta-secondary" href="#two">Read the method</a>
   </div>
 </section>
@@ -569,7 +569,7 @@ footer{
 <section class="final">
   <h2 class="display">Begin.</h2>
   <p class="lede" style="margin:0 auto 36px">{{ "{:,}".format(s.total_q) }} questions are waiting. The first one is free.</p>
-  <a class="cta-primary" href="/">Start drilling →</a>
+  <a class="cta-primary" href="/app">Start drilling →</a>
 </section>
 
 <footer>
@@ -782,7 +782,7 @@ footer{
     <a href="#inventory">Inventory</a>
     <a href="#pricing">Pricing</a>
   </div>
-  <a class="btn-go" href="/">Open app →</a>
+  <a class="btn-go" href="/app">Open app →</a>
 </nav>
 
 <section class="hero">
@@ -791,7 +791,7 @@ footer{
     <h1 class="h1">Built for<br>the <span class="lift">score.</span></h1>
     <p class="sub">Every official ACT question, ever released. <b>{{ "{:,}".format(s.total_q) }}</b> of them. Indexed by topic, drilled by an adaptive engine, explained by a tutor that remembers what you missed.</p>
     <div class="cta-row">
-      <a class="btn-primary" href="/">Start drilling →</a>
+      <a class="btn-primary" href="/app">Start drilling →</a>
       <a class="btn-ghost" href="#how">See how it works</a>
     </div>
   </div>
@@ -888,7 +888,7 @@ footer{
   <h2>The next question<br>is waiting.</h2>
   <p>Free to start. Five dollars a month for the tutor. Cancel anytime.</p>
   <div class="cta-row" style="justify-content:center">
-    <a class="btn-primary" href="/">Start drilling →</a>
+    <a class="btn-primary" href="/app">Start drilling →</a>
     <a class="btn-ghost" href="/full-test">Browse the inventory</a>
   </div>
 </div>
@@ -1168,7 +1168,7 @@ footer{
     <a href="#pricing">Pricing</a>
     <a href="/full-test">Inventory</a>
   </div>
-  <a class="btn-go" href="/">Open app →</a>
+  <a class="btn-go" href="/app">Open app →</a>
 </nav>
 
 <section class="hero">
@@ -1176,7 +1176,7 @@ footer{
   <h1 class="h1">Master the ACT,<br><span class="meth"><b>methodically.</b></span></h1>
   <p class="h-sub">Drill every official ACT question. Get a tutor that explains why. Watch your score predictor climb as the engine targets your weak spots.</p>
   <div class="h-cta">
-    <a class="btn-p" href="/">Start free →</a>
+    <a class="btn-p" href="/app">Start free →</a>
     <a class="btn-s" href="#method">See the method</a>
   </div>
 
@@ -1284,7 +1284,7 @@ footer{
         <li>Section drilling</li>
         <li>Stats &amp; review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-s" href="/">Start free →</a></div>
+      <div class="cta-row"><a class="btn-s" href="/app">Start free →</a></div>
     </div>
     <div class="plan pro">
       <h3>Premium</h3>
@@ -1295,7 +1295,7 @@ footer{
         <li>Adaptive engine + score predictor</li>
         <li>Wrong-answer review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-p" href="/">Upgrade →</a></div>
+      <div class="cta-row"><a class="btn-p" href="/app">Upgrade →</a></div>
     </div>
   </div>
 </section>
@@ -1304,7 +1304,7 @@ footer{
   <h2>Drill the next question.</h2>
   <p>{{ "{:,}".format(s.total_q) }} are waiting. The engine already knows where to start.</p>
   <div class="h-cta" style="justify-content:center">
-    <a class="btn-p" href="/">Open Forma →</a>
+    <a class="btn-p" href="/app">Open Forma →</a>
     <a class="btn-s" href="/full-test">See official tests</a>
   </div>
 </div>
@@ -1722,7 +1722,7 @@ footer{
     <a href="#inventory">Inventory</a>
     <a href="#pricing">Pricing</a>
   </div>
-  <a class="btn-go" href="/">Open app →</a>
+  <a class="btn-go" href="/app">Open app →</a>
 </nav>
 
 <section class="hero">
@@ -1731,7 +1731,7 @@ footer{
     <h1 class="h1">Master the <span class="gold">ACT</span>,<br>efficiently.</h1>
     <p class="h-sub">Drill every official ACT question. Get a tutor that explains why the right answer is right. Watch your score predictor climb as the engine targets your weak spots.</p>
     <div class="h-cta">
-      <a class="btn-p" href="/">Start drilling →</a>
+      <a class="btn-p" href="/app">Start drilling →</a>
       <a class="btn-s" href="#method">See the method →</a>
     </div>
   </div>
@@ -1890,7 +1890,7 @@ footer{
         <li>Section drilling</li>
         <li>Stats and review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-s" href="/">Start free →</a></div>
+      <div class="cta-row"><a class="btn-s" href="/app">Start free →</a></div>
     </div>
     <div class="plan pro">
       <h3>Premium</h3>
@@ -1901,7 +1901,7 @@ footer{
         <li>Adaptive engine + score predictor</li>
         <li>Wrong-answer review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-p" href="/">Upgrade →</a></div>
+      <div class="cta-row"><a class="btn-p" href="/app">Upgrade →</a></div>
     </div>
   </div>
 </section>
@@ -1910,7 +1910,7 @@ footer{
   <h2>Drill the<br><em>next question.</em></h2>
   <p>{{ "{:,}".format(s.total_q) }} are waiting. The engine already knows where to start.</p>
   <div class="h-cta">
-    <a class="btn-p" href="/">Open Forma →</a>
+    <a class="btn-p" href="/app">Open Forma →</a>
     <a class="btn-s" href="/full-test">See official tests →</a>
   </div>
 </div>
@@ -2013,8 +2013,12 @@ def _v5():
 
 
 def register(app):
+    # Public landing page lives at the root.
+    app.add_url_rule("/", "landing_home", _v5)
+    # /v5 kept as a stable alias (used while iterating; safe to remove later).
+    app.add_url_rule("/v5", "landing_v5", _v5)
+    # Dev-only variants — left mounted so they keep being browsable.
     app.add_url_rule("/v1", "landing_v1", _v1)
     app.add_url_rule("/v2", "landing_v2", _v2)
     app.add_url_rule("/v3", "landing_v3", _v3)
     app.add_url_rule("/v4", "landing_v4", _v4)
-    app.add_url_rule("/v5", "landing_v5", _v5)
