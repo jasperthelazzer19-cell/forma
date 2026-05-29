@@ -20,19 +20,18 @@ from forma.db import db
 # Rough ACT math-scale curve. 5 questions is tiny so the result is directional,
 # not diagnostic-grade — we frame it that way in the UI.
 def _project_math(pct):
-    """pct 0-100 → ACT math scale 1-36."""
-    # Stepwise curve roughly tracking ACT math difficulty distribution
-    if pct >= 95: return 35
+    """pct 0-100 → ACT math scale 1-36.
+    Must match features.predict_score.pct_to_scaled so the diagnostic and the
+    dashboard never show a different projection for the same percentage."""
     if pct >= 90: return 33
     if pct >= 80: return 30
     if pct >= 70: return 27
     if pct >= 60: return 24
-    if pct >= 50: return 22
-    if pct >= 40: return 20
-    if pct >= 30: return 18
-    if pct >= 20: return 16
-    if pct >= 10: return 14
-    return 12
+    if pct >= 50: return 21
+    if pct >= 40: return 18
+    if pct >= 30: return 15
+    if pct >= 20: return 12
+    return 9
 
 
 # ─── Question selection ─────────────────────────────────────────────────────

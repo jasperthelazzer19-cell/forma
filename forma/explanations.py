@@ -37,8 +37,17 @@ def fetch_explanation(section, global_q):
         # Strip navigation lists (the "More ACT English Tests" sidebar)
         for ul in main.find_all("ul"):
             ul.decompose()
-        for tag in main.find_all(["script", "style", "ins", "iframe"]):
+        for tag in main.find_all(["script", "style", "ins", "iframe", "object", "embed", "link", "meta", "form"]):
             tag.decompose()
+        # Strip event-handler attributes and javascript: URLs — this HTML is
+        # scraped from a third party and rendered with innerHTML, so it's an XSS
+        # sink without this. (Not a full sanitizer, but closes the active vectors.)
+        for el in main.find_all(True):
+            for attr in list(el.attrs):
+                val = el.attrs.get(attr)
+                valstr = " ".join(val) if isinstance(val, list) else str(val or "")
+                if attr.lower().startswith("on") or "javascript:" in valstr.lower():
+                    del el.attrs[attr]
         # Strip the Previous/Next links
         for a in main.find_all("a"):
             if a.get_text(strip=True).lower() in ("previous", "next"):

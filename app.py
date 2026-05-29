@@ -30,6 +30,17 @@ app = Flask(__name__)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.teardown_appcontext(close_db)
 
+
+@app.errorhandler(404)
+def _not_found(e):
+    return ("""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Not found · Forma</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+background:#0a0805;color:#e8e3d8;font-family:system-ui,sans-serif;text-align:center}
+a{color:#e8a33d;text-decoration:none}h1{font-size:3rem;margin:0 0 .2em;font-family:Georgia,serif}</style>
+</head><body><div><h1>404</h1><p>That page or test doesn't exist.</p>
+<p><a href="/">← Back to Forma</a></p></div></body></html>""", 404)
+
 # ─── Base CSS shared by every page (Linear-dark app-shell) ─────────
 
 def section_counts():
@@ -154,7 +165,7 @@ HOME_HTML = """
     </div>
   </header>
   <div class="canvas">
-    <h1>Good evening, Jasper.</h1>
+    <h1>{% if attempt_count == 0 %}Welcome to Forma.{% else %}Welcome back.{% endif %}</h1>
     <p class="subtitle">{% if attempt_count == 0 %}You haven't taken a drill yet. One English drill is about nine minutes.{% else %}{{ today_q }} {{ 'question' if today_q == 1 else 'questions' }} today · {{ today_pct }}% accuracy · {{ streak }}-day streak.{% endif %}</p>
 
     {% if not diag.taken and attempt_count == 0 %}
@@ -1382,20 +1393,23 @@ TEST_HTML = """
     });
     // tally — radio names use crackab's global q_nums (e.g. "1051") not 1-15.
     // GLOBAL_Q maps position 1..N to the actual radio name. Use it.
-    let right = 0, wrong = 0, blank = 0;
+    let right = 0, wrong = 0, blank = 0, ungradeable = 0;
     const cells = [];
     for (let i = 1; i <= QCOUNT; i++) {
       const radioName = String(GLOBAL_Q[String(i)] || i);
       const u = user[radioName]; const c = ANSWERS[radioName];
       let cls = 'blank', body = '—';
-      if (!u) { blank++; }
+      // No published answer key for this question (scraping gap) — don't score it.
+      if (c === null || c === undefined || c === '' || c === '...') { ungradeable++; cls = 'blank'; body = '·'; }
+      else if (!u) { blank++; }
       else if (u === c) { right++; cls = 'right'; body = c; }
       else { wrong++; cls = 'wrong'; body = `${u}→${c}`; }
       cells.push(`<div class="qcell ${cls}"><span class="num">Q${i}</span><span class="ans">${body}</span></div>`);
     }
-    document.getElementById('score').innerHTML = `${right}<em>/${QCOUNT}</em>`;
+    const graded = QCOUNT - ungradeable;
+    document.getElementById('score').innerHTML = `${right}<em>/${graded}</em>`;
     document.getElementById('score-meta').textContent =
-      `${right} correct · ${wrong} wrong · ${blank} blank · ${Math.round(100*right/QCOUNT)}%`;
+      `${right} correct · ${wrong} wrong · ${blank} blank` + (ungradeable ? ` · ${ungradeable} no key` : '') + ` · ${graded ? Math.round(100*right/graded) : 0}%`;
     document.getElementById('breakdown').innerHTML = cells.join('');
     document.getElementById('results').classList.add('show');
     document.getElementById('results').scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -1471,7 +1485,7 @@ TEST_HTML = """
               .then(d => {
                 details.querySelector('.panel').innerHTML =
                   '<div style="color:var(--accent);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">AI tutor</div>' +
-                  d.explanation.replace(/\\n/g, '<br>');
+                  String(d.explanation).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\n/g, '<br>');
                 details.dataset.loaded = 'true';
               })
               .catch(err => {
@@ -1615,8 +1629,8 @@ def test_page(test_id):
         passage_text_marked=test["passage_text_marked"] or "",
         passage_div_html=test["passage_div_html"] or "",
         passage_html=passage_html_str or "<p class='muted'>No questions stored.</p>",
-        answers_json=json.dumps(answers),
-        global_q_json=json.dumps(global_q_map),
+        answers_json=json.dumps(answers).replace("</", "<\\/"),
+        global_q_json=json.dumps(global_q_map).replace("</", "<\\/"),
         section_label=section_label, minutes=minutes,
         prev_id=prev["id"] if prev else None,
         next_id=nxt["id"] if nxt else None,
@@ -1774,4 +1788,4 @@ if __name__ == "__main__":
     args = ap.parse_args()
     print(f" * Forma — http://127.0.0.1:{args.port}/", flush=True)
     print(f" * DB: {DB_PATH}", flush=True)
-    app.run(host="127.0.0.1", port=args.port, debug=True)
+    app.run(host="127.0.0.1", port=args.port, debug=os.environ.get("DEBUG") == "1")

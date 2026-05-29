@@ -237,9 +237,18 @@ h2 {
 .palette-item .pmeta { color: var(--dim); font-size: 11.5px; font-family: var(--mono); }
 """
 
-HEAD = """<!doctype html><html><head>
+HEAD = """<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} · Forma</title>
+<meta name="description" content="Forma — methodical ACT prep on 17,000+ real questions across 700+ official forms. Drill by topic, track your projected score, learn from explanations.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230d0d0f%22/><text x=%2232%22 y=%2244%22 font-family=%22Georgia,serif%22 font-size=%2240%22 font-weight=%22600%22 fill=%22%23e8a33d%22 text-anchor=%22middle%22>F</text></svg>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Forma">
+<meta property="og:title" content="{title} · Forma">
+<meta property="og:description" content="Methodical ACT prep on 17,000+ real questions across 700+ official forms.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{title} · Forma">
+<meta name="twitter:description" content="Methodical ACT prep on 17,000+ real questions across 700+ official forms.">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -283,8 +292,8 @@ SIDEBAR_TMPL = """<aside class="sb">
     <a class="nav-item {a_generated}" href="/generated"><span class="ic">◇</span>AI-generated</a>
   </div>
   <div class="sb-foot">
-    <div class="avatar">J</div>
-    <div class="you">Jasper</div>
+    <div class="avatar">F</div>
+    <div class="you">Forma</div>
   </div>
 </aside>"""
 

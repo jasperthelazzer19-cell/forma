@@ -4,7 +4,9 @@ simulation, search, topics, bookmarks.
 Imported by app.py via `import features; features.register(app)`.
 """
 import json
+import os
 import random
+import sqlite3
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -47,21 +49,29 @@ def api_attempt():
     data = request.get_json(silent=True) or {}
     test_id = data.get("test_id")
     answers = data.get("answers", {})        # { q_num: user_answer }
-    correct = data.get("correct", {})        # { q_num: correct_letter }
     duration = data.get("duration_seconds", 0)
     if not test_id or not answers:
         return jsonify({"error": "missing test_id or answers"}), 400
+    conn = db()
+    cur = conn.cursor()
+    # Re-derive correct answers from the DB — never trust the client-supplied
+    # "correct" dict (it was forgeable, and a stale client could log wrong scores).
+    # Only count gradeable questions: null/empty/"..." correct answers are
+    # scraping gaps and must not be scored as wrong.
+    correct = {str(r["q_num"]): r["correct_answer"]
+               for r in cur.execute(
+                   "SELECT q_num, correct_answer FROM questions WHERE test_id = ?",
+                   (test_id,))}
+    gradeable = {qn: c for qn, c in correct.items() if c not in (None, "", "...")}
     score = 0
-    total = len(correct) or len(answers)
+    total = len(gradeable)
     rows = []
-    for qnum_str, cor in correct.items():
+    for qnum_str, cor in gradeable.items():
         u = answers.get(qnum_str)
         is_c = 1 if (u and u == cor) else 0
         if is_c: score += 1
         rows.append((qnum_str, u, cor, is_c))
     pct = (score * 100.0 / total) if total else 0.0
-    conn = db()
-    cur = conn.cursor()
     now = datetime.utcnow().isoformat(timespec="seconds")
     cur.execute("""INSERT INTO attempts (test_id, started_at, finished_at,
                    duration_seconds, score, total, pct) VALUES (?,?,?,?,?,?,?)""",
@@ -946,8 +956,11 @@ def predict_score(pct_by_section):
         if p >= 20: return 12
         return 9
     scaled = {k: pct_to_scaled(v or 0) for k, v in pct_by_section.items()}
-    vals = [v for v in scaled.values() if v > 0]
-    composite = round(sum(vals) / len(vals)) if vals else None
+    # Composite = mean of sections the student has ACTUALLY practiced. pct_to_scaled(0)
+    # is 9 (not 0), so averaging untouched sections would drag a real composite down
+    # toward 9. Only average sections with real data.
+    real = [pct_to_scaled(v) for v in pct_by_section.values() if v and v > 0]
+    composite = round(sum(real) / len(real)) if real else None
     return composite, scaled
 
 
@@ -973,15 +986,12 @@ def api_tutor():
     # If we already have an AI-generated explanation stored, return it
     if explanation:
         return jsonify({"explanation": explanation, "cached": True})
-    # Otherwise call OpenAI
+    # Otherwise call OpenAI. Requires OPENAI_API_KEY in the environment (set it
+    # in Railway). Degrade gracefully instead of 500-ing if it's not configured.
+    if not os.environ.get("OPENAI_API_KEY"):
+        return jsonify({"error": "AI tutor isn't configured right now."}), 503
     try:
         from openai import OpenAI
-        if not os.environ.get("OPENAI_API_KEY"):
-            with open("/Users/jasperlasser/Downloads/company brain/Jlazz/Projects/CreatorBrain/Credentials.md") as f:
-                for cand in re.findall(r"sk-(?:proj-|[a-zA-Z])[a-zA-Z0-9_-]{20,}", f.read()):
-                    if not cand.startswith("sk-ant"):
-                        os.environ["OPENAI_API_KEY"] = cand
-                        break
         oai = OpenAI()
         opt_str = "\n".join(f"{k}. {v}" for k, v in sorted(opts.items()) if len(k) == 1)
         user = f"Question: {prompt_text or '(no prompt)'}\n\nOptions:\n{opt_str}\n\nCorrect answer: {correct or '(unknown)'}\n\nIn 3-4 sentences, explain why the correct answer is right and why the most plausible wrong answer is wrong. Be specific."
@@ -1148,17 +1158,22 @@ def search_view():
                 # FTS5 ranking with snippet generation
                 rows = cur.execute(f"""
                     SELECT f.test_id, f.q_num, f.section, t.title,
-                           snippet(questions_fts, 3, '<mark>', '</mark>', '…', 18) AS snip,
+                           snippet(questions_fts, 3, '«mark»', '«/mark»', '…', 18) AS snip,
                            bm25(questions_fts) AS rank
                     FROM questions_fts f
                     JOIN tests t ON t.id = f.test_id
                     WHERE questions_fts MATCH ? {section_filter}
                     ORDER BY rank LIMIT 60
                 """, params).fetchall()
+                import html as _html
                 for r in rows:
+                    # HTML-escape the scraped body, then restore the <mark> tags
+                    # from sentinels — prevents stored HTML in questions from
+                    # injecting into the |safe-rendered snippet.
+                    snip = _html.escape(r["snip"] or "").replace("«mark»", "<mark>").replace("«/mark»", "</mark>")
                     hits.append({
                         "test_id": r["test_id"], "title": r["title"] or "",
-                        "section": r["section"], "q_num": r["q_num"], "snippet": r["snip"],
+                        "section": r["section"], "q_num": r["q_num"], "snippet": snip,
                     })
             except sqlite3.OperationalError:
                 fts_available = False
@@ -1176,9 +1191,10 @@ def search_view():
                 idx = body.lower().find(raw_q.lower())
                 if idx < 0: continue
                 start = max(0, idx - 50); end = min(len(body), idx + len(raw_q) + 100)
-                snip = body[start:end]
-                import re as _re
-                snip = _re.sub(_re.escape(raw_q), lambda m: f"<mark>{m.group(0)}</mark>", snip, flags=_re.I)
+                import re as _re, html as _html
+                snip = _html.escape(body[start:end])  # escape scraped body before marking
+                esc_q = _html.escape(raw_q)
+                snip = _re.sub(_re.escape(esc_q), lambda m: f"<mark>{m.group(0)}</mark>", snip, flags=_re.I)
                 hits.append({"test_id": r["test_id"], "title": r["title"] or "",
                              "section": r["section"], "q_num": r["q_num"], "snippet": snip})
     return render_template_string(SEARCH_HTML, base_css=BASE_CSS, shell_close=shell_close(),
@@ -1187,7 +1203,15 @@ def search_view():
 
 
 def api_reset_stats():
-    """POST /api/reset-stats — wipe all attempts + attempt_answers."""
+    """POST /api/reset-stats — wipe all attempts + attempt_answers. Admin-gated:
+    this is globally destructive (one shared DB, no per-user data), so it requires
+    the ADMIN_KEY env var and fails closed if it isn't configured."""
+    admin_key = os.environ.get("ADMIN_KEY")
+    supplied = (request.args.get("key")
+                or request.headers.get("X-Admin-Key")
+                or (request.get_json(silent=True) or {}).get("key"))
+    if not admin_key or supplied != admin_key:
+        return jsonify({"error": "unauthorized"}), 401
     conn = db()
     n = conn.execute("SELECT COUNT(*) FROM attempts").fetchone()[0]
     conn.execute("DELETE FROM attempt_answers")
