@@ -716,8 +716,9 @@ ADAPTIVE_HTML = """
   {% if not has_history %}
     <div class="strategy">
       <h3>No history yet</h3>
-      <p class="why">Take a few tests in any section first so we have something to adapt from. Even one test gives us signal.</p>
-      <a href="/app" class="btn">Go pick a test →</a>
+      <p class="why">The engine needs signal to adapt. Take the 60-second diagnostic — five real ACT math questions — and we'll seed your weak spots from there.</p>
+      <a href="/diagnostic" class="btn">Start 60-sec diagnostic →</a>
+      <a href="/section/english" class="btn" style="margin-left:8px;background:transparent;border:1px solid var(--border-strong);color:var(--fg-2)">Or browse tests</a>
     </div>
   {% else %}
     <div class="strategy">

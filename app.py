@@ -20,6 +20,8 @@ from forma.shell import BASE_CSS, HEAD, SIDEBAR_TMPL, PALETTE_HTML, SECTION_LABE
 from forma.db import DB_PATH, db, close_db, seed_if_needed
 from forma import explanations as expl_mod
 from forma import landing
+from forma import diagnostic
+from forma import drill
 import features
 
 seed_if_needed()
@@ -113,6 +115,33 @@ HOME_HTML = """
   }
   .empty-state h3 { font-family: var(--sans); font-weight: 600; font-size: 15px; color: var(--fg); margin-bottom: 6px; }
   .empty-state p { font-size: 13px; max-width: 50ch; margin: 0 auto 18px; }
+
+  /* Diagnostic CTA banner — shows when user hasn't taken diagnostic AND has no attempts */
+  .diag-banner {
+    display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center;
+    padding: 22px 26px; margin: 18px 0 8px;
+    background: linear-gradient(135deg, rgba(232,166,74,0.10) 0%, rgba(232,166,74,0.03) 100%);
+    border: 1px solid rgba(232,166,74,0.28);
+    border-radius: 12px;
+    position: relative; overflow: hidden;
+  }
+  .diag-banner::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.6;
+  }
+  .diag-banner .label {
+    font-family: var(--mono); font-size: 10.5px; color: var(--accent);
+    letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; font-weight: 600;
+  }
+  .diag-banner h3 {
+    font-family: var(--sans); font-size: 17px; font-weight: 600; color: var(--fg);
+    letter-spacing: -0.012em; margin-bottom: 4px;
+  }
+  .diag-banner p { font-size: 13.5px; color: var(--muted); max-width: 60ch; line-height: 1.5; }
+  .diag-banner .btn-row { display: flex; gap: 10px; align-items: center; }
+  .diag-banner .skip { font-family: var(--mono); font-size: 10.5px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+  .diag-banner .skip:hover { color: var(--muted); }
+  @media (max-width: 760px) { .diag-banner { grid-template-columns: 1fr; } .diag-banner .btn-row { justify-content: flex-start; } }
 </style></head><body>
 <div class="app">
 {{ sidebar|safe }}
@@ -128,15 +157,33 @@ HOME_HTML = """
     <h1>Good evening, Jasper.</h1>
     <p class="subtitle">{% if attempt_count == 0 %}You haven't taken a drill yet. One English drill is about nine minutes.{% else %}{{ today_q }} {{ 'question' if today_q == 1 else 'questions' }} today · {{ today_pct }}% accuracy · {{ streak }}-day streak.{% endif %}</p>
 
+    {% if not diag.taken and attempt_count == 0 %}
+    <div class="diag-banner">
+      <div>
+        <div class="label">START HERE · 60 SECONDS</div>
+        <h3>Take a 5-question warm-up to seed your dashboard.</h3>
+        <p>Real official ACT math questions. We score them and project an ACT score so you have a baseline to move against. Skip if you want to dive straight in.</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn lg" href="/diagnostic">Start warm-up →</a>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card session-card">
       <div class="stat-mini"><div class="n">{{ today_q }}</div><div class="l">QUESTIONS TODAY</div><div class="d">{% if attempt_count %}+{{ today_q }} from yesterday{% else %}none yet{% endif %}</div></div>
       <div class="stat-mini"><div class="n {% if today_pct >= 75 %}good{% elif today_pct >= 50 %}warn{% else %}bad{% endif %}">{{ today_pct }}%</div><div class="l">ACCURACY</div><div class="d">{% if attempt_count %}today's sessions{% else %}awaiting first run{% endif %}</div></div>
       <div class="stat-mini"><div class="n good">{{ streak }}</div><div class="l">DAY STREAK</div><div class="d">{% if streak > 0 %}keep it going{% else %}start one today{% endif %}</div></div>
-      <div class="stat-mini"><div class="n accent">{% if projected %}{{ projected }}{% else %}—{% endif %}</div><div class="l">PROJECTED ACT</div><div class="d">{% if projected %}across sections{% else %}take a few drills{% endif %}</div></div>
+      <div class="stat-mini"><div class="n accent">{% if projected %}{{ projected }}{% elif diag.taken and diag.result %}{{ diag.result.projected_math }}{% else %}—{% endif %}</div><div class="l">PROJECTED ACT</div><div class="d">{% if projected %}across sections{% elif diag.taken and diag.result %}diagnostic only · ±3{% else %}take the warm-up{% endif %}</div></div>
       <a class="btn lg" href="/section/english">Start session →</a>
     </div>
 
     <div class="feed-label">Suggested next</div>
+    <a class="feed-item" href="/drill?section=math&n=10">
+      <div class="feed-ic">⚡</div>
+      <div class="feed-body"><div class="t">Quick drill — 10 math questions</div><div class="d">One at a time, instant feedback, no timer. ~6 min.</div></div>
+      <div class="feed-meta"><span class="badge">Drill</span><div>~6 min</div></div>
+    </a>
     {% if last_attempt %}
     <a class="feed-item" href="/test/{{ last_attempt.test_id }}">
       <div class="feed-ic">↻</div>
@@ -351,6 +398,8 @@ def home():
     # Wrong-answer count
     cur.execute("SELECT COUNT(*) FROM attempt_answers WHERE is_correct = 0")
     wrong_count = cur.fetchone()[0] or 0
+    # Diagnostic status — drives the START HERE banner + seeds projected ACT
+    diag = diagnostic.diagnostic_status()
     return render_template_string(
         HOME_HTML,
         base_css=BASE_CSS, sections=sections,
@@ -363,6 +412,7 @@ def home():
         today_q=today_q, today_pct=today_pct, streak=streak,
         recent=recent, projected=projected,
         last_attempt=last_attempt, weakest_topic=weakest_topic, wrong_count=wrong_count,
+        diag=diag,
     )
 
 # ─── Section: list of tests ────────────────────────────────────────
@@ -1715,6 +1765,8 @@ def api_explanation(section, global_q):
 # ─── boot ──────────────────────────────────────────────────────────
 features.register(app)
 landing.register(app)
+diagnostic.register(app)
+drill.register(app)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

@@ -16,6 +16,8 @@ def _stats():
     total_q = c.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
     total_t = c.execute("SELECT COUNT(*) FROM tests").fetchone()[0]
     official = c.execute("SELECT COUNT(*) FROM tests WHERE source='official'").fetchone()[0]
+    official_q = c.execute("""SELECT COUNT(*) FROM questions q
+                              JOIN tests t ON q.test_id=t.id WHERE t.source='official'""").fetchone()[0]
     by_section = {}
     for sec in ("english", "math", "reading", "science"):
         n = c.execute("""SELECT COUNT(*) FROM questions q
@@ -27,6 +29,7 @@ def _stats():
     conn.close()
     return {
         "total_q": total_q, "total_t": total_t, "official": official,
+        "official_q": official_q,
         "english": by_section["english"], "math": by_section["math"],
         "reading": by_section["reading"], "science": by_section["science"],
         "topics": topics, "last_scrape": last_scrape,
@@ -820,9 +823,9 @@ footer{
 
 <div class="stats-strip">
   <div class="stat"><div class="v">{{ "{:,}".format(s.total_q) }}</div><div class="l">Questions</div></div>
-  <div class="stat"><div class="v">{{ s.official }}</div><div class="l">Official forms</div></div>
+  <div class="stat"><div class="v">{{ "{:,}".format(s.official_q) }}</div><div class="l">Official ACT Q</div></div>
+  <div class="stat"><div class="v">{{ s.official }}</div><div class="l">Released forms</div></div>
   <div class="stat"><div class="v">{{ s.topics }}</div><div class="l">Topics tagged</div></div>
-  <div class="stat"><div class="v">24/7</div><div class="l">AI tutor</div></div>
 </div>
 
 <section class="sec" id="how">
@@ -1706,11 +1709,16 @@ a{color:inherit;text-decoration:none}
 .final-cta .h-cta{justify-content:center;display:flex;gap:14px;flex-wrap:wrap}
 
 footer{
-  border-top:1px solid var(--line);padding:32px 36px;
-  display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);
+  border-top:1px solid var(--line);padding:32px 36px 28px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;
+  font-family:var(--mono);font-size:11px;color:var(--muted);
   max-width:1340px;margin:0 auto;letter-spacing:0.08em;text-transform:uppercase;
 }
-@media(max-width:640px){footer{flex-direction:column;gap:10px}}
+footer .built{justify-self:center;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:12.5px;color:var(--fg-2)}
+footer .built a{color:var(--amber);border-bottom:1px solid rgba(232,166,74,0.25);padding-bottom:1px}
+footer .built a:hover{border-bottom-color:var(--amber)}
+footer .right{justify-self:end}
+@media(max-width:640px){footer{grid-template-columns:1fr;justify-items:start;gap:14px}footer .built,footer .right{justify-self:start}}
 </style>
 </head>
 <body>
@@ -1778,9 +1786,9 @@ footer{
 
 <div class="stats-strip">
   <div class="stat"><div class="v">{{ "{:,}".format(s.total_q) }}</div><div class="l">Questions</div></div>
-  <div class="stat"><div class="v">{{ s.official }}</div><div class="l">Official forms</div></div>
+  <div class="stat"><div class="v">{{ "{:,}".format(s.official_q) }}</div><div class="l">Official ACT Q</div></div>
+  <div class="stat"><div class="v">{{ s.official }}</div><div class="l">Released forms</div></div>
   <div class="stat"><div class="v">{{ s.topics }}</div><div class="l">Topics tagged</div></div>
-  <div class="stat"><div class="v">24/7</div><div class="l">AI tutor</div></div>
 </div>
 
 <section class="bento-wrap" id="inventory">
@@ -1885,10 +1893,10 @@ footer{
       <h3>Free</h3>
       <div class="price">$0<span class="per">/ forever</span></div>
       <ul>
-        <li>Every question, every test</li>
-        <li>Topic search and bookmarks</li>
-        <li>Section drilling</li>
-        <li>Stats and review queue</li>
+        <li>All {{ "{:,}".format(s.total_q) }} questions · all {{ s.total_t }} tests</li>
+        <li>Section drilling · topic search · bookmarks</li>
+        <li>Stats &amp; full-length timed tests</li>
+        <li><b>3 AI tutor explanations / day</b></li>
       </ul>
       <div class="cta-row"><a class="btn-s" href="/app">Start free →</a></div>
     </div>
@@ -1896,10 +1904,10 @@ footer{
       <h3>Premium</h3>
       <div class="price">$5<span class="per">/ month</span></div>
       <ul>
-        <li>Everything in free</li>
-        <li>AI tutor on every question</li>
-        <li>Adaptive engine + score predictor</li>
-        <li>Wrong-answer review queue</li>
+        <li>Everything in free, plus:</li>
+        <li><b>Unlimited AI tutor</b> on every question</li>
+        <li><b>Adaptive engine</b> — drills only your weak topics</li>
+        <li><b>Live score predictor</b> + wrong-answer review queue</li>
       </ul>
       <div class="cta-row"><a class="btn-p" href="/app">Upgrade →</a></div>
     </div>
@@ -1916,8 +1924,9 @@ footer{
 </div>
 
 <footer>
-  <span>© 2026 Forma · Built for the score, not the system</span>
-  <span>{{ s.total_q }} Q · {{ s.official }} OFFICIAL · {{ s.topics }} TOPICS</span>
+  <span>© 2026 Forma</span>
+  <span class="built">Built solo by an 18-year-old high school junior · <a href="mailto:jasperthelazzer19@gmail.com">say hi</a></span>
+  <span class="right">{{ "{:,}".format(s.total_q) }} Q · {{ s.official }} OFFICIAL · {{ s.topics }} TOPICS</span>
 </footer>
 
 <script>
