@@ -18,6 +18,27 @@ _session = requests.Session()
 _session.headers.update({"User-Agent": UA})
 
 
+def sanitize_html(raw):
+    """Strip dangerous tags/attributes from third-party (scraped) HTML while
+    preserving the question/passage structure (forms, radio inputs, tables,
+    images). Used on every passage/explanation blob before it's rendered with
+    |safe / innerHTML, since the source content is not trusted."""
+    if not raw:
+        return raw
+    soup = BeautifulSoup(raw, "html.parser")
+    # Keep <form>/<input> — crackab passages embed the answer radios there.
+    for tag in soup.find_all(["script", "style", "iframe", "object", "embed",
+                              "link", "meta", "base"]):
+        tag.decompose()
+    for el in soup.find_all(True):
+        for attr in list(el.attrs):
+            val = el.attrs.get(attr)
+            valstr = " ".join(val) if isinstance(val, list) else str(val or "")
+            if attr.lower().startswith("on") or "javascript:" in valstr.lower():
+                del el.attrs[attr]
+    return str(soup)
+
+
 def global_q_for(test_number, q_num, qs_per_test):
     return (test_number - 1) * qs_per_test + q_num
 
@@ -65,7 +86,8 @@ def fetch_explanation(section, global_q):
 
 def get_explanation_cached(section, global_q):
     """Return (html, was_cached). Lazy-fetches and caches if missing."""
-    conn = sqlite3.connect(DB)
+    conn = sqlite3.connect(DB, timeout=10)
+    conn.execute("PRAGMA busy_timeout=8000")  # wait on locks instead of erroring under concurrent load
     row = conn.execute(
         "SELECT html_content FROM explanations WHERE section = ? AND global_q = ?",
         (section, global_q),

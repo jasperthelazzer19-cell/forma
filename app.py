@@ -17,7 +17,7 @@ import os
 from flask import Flask, g, render_template_string, redirect, url_for, request, abort, jsonify
 
 from forma.shell import BASE_CSS, HEAD, SIDEBAR_TMPL, PALETTE_HTML, SECTION_LABELS, shell_sidebar
-from forma.db import DB_PATH, db, close_db, seed_if_needed
+from forma.db import DB_PATH, db, close_db, seed_if_needed, repair_fts
 from forma import explanations as expl_mod
 from forma import landing
 from forma import diagnostic
@@ -25,9 +25,12 @@ from forma import drill
 import features
 
 seed_if_needed()
+repair_fts()
 
 app = Flask(__name__)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+# Stable secret key from env (random fallback) so sessions survive restarts if added.
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24).hex()
 app.teardown_appcontext(close_db)
 
 
@@ -53,7 +56,7 @@ def section_counts():
 
 # ─── Home: section tiles ───────────────────────────────────────────
 HOME_HTML = """
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230d0d0f%22/><text x=%2232%22 y=%2244%22 font-family=%22Georgia,serif%22 font-size=%2240%22 font-weight=%22600%22 fill=%22%23e8a33d%22 text-anchor=%22middle%22>F</text></svg>">
 <title>Today · Forma</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin><link rel="preconnect" href="https://cdn.fontshare.com" crossorigin><link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -428,7 +431,7 @@ def home():
 
 # ─── Section: list of tests ────────────────────────────────────────
 SECTION_HTML = """
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230d0d0f%22/><text x=%2232%22 y=%2244%22 font-family=%22Georgia,serif%22 font-size=%2240%22 font-weight=%22600%22 fill=%22%23e8a33d%22 text-anchor=%22middle%22>F</text></svg>">
 <title>{{ section_label }} — Forma</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin><link rel="preconnect" href="https://cdn.fontshare.com" crossorigin><link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -695,7 +698,7 @@ def section(section):
 
 # ─── Test page: passage + questions + client-side grading ──────────
 TEST_HTML = """
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230d0d0f%22/><text x=%2232%22 y=%2244%22 font-family=%22Georgia,serif%22 font-size=%2240%22 font-weight=%22600%22 fill=%22%23e8a33d%22 text-anchor=%22middle%22>F</text></svg>">
 <title>{{ test.title }} — Forma</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin><link rel="preconnect" href="https://cdn.fontshare.com" crossorigin><link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -714,7 +717,13 @@ TEST_HTML = """
     display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px;
     align-items: start; margin-top: 18px;
   }
-  @media (max-width: 980px) { .test-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) {
+    .test-grid { grid-template-columns: 1fr; }
+    /* Stacked single column on mobile: don't trap the passage in a short
+       sticky scroll-box — let it flow above the questions. */
+    .passage-col { position: static; max-height: none; overflow-y: visible; padding: 22px 18px; }
+    .wrap { padding: 16px 16px 60px; }
+  }
   .passage-col {
     background: linear-gradient(180deg, var(--bg-3) 0%, var(--bg-2) 100%);
     border: 1px solid var(--border);
@@ -1593,7 +1602,10 @@ def test_page(test_id):
             # Sort options A,B,C,D,E or F,G,H,J,K
             opt_keys = sorted([k for k in opts.keys() if len(k) == 1])
             for letter in opt_keys:
-                otext = _html.escape(str(opts[letter]))
+                _raw = str(opts[letter]).strip()
+                # Some scraped questions have a valid answer letter but empty
+                # option text — show a clear placeholder instead of a blank choice.
+                otext = _html.escape(_raw) if _raw else "<span style='opacity:.55'>(choice text unavailable)</span>"
                 parts.append(
                     f'<div class="radio"><label>'
                     f'<input name="{qn}" type="radio" value="{letter}"/>'
@@ -1626,9 +1638,9 @@ def test_page(test_id):
         test=test, qcount=qcount,
         display_num=display_num,
         passage_text=test["passage_text"] or "",
-        passage_text_marked=test["passage_text_marked"] or "",
-        passage_div_html=test["passage_div_html"] or "",
-        passage_html=passage_html_str or "<p class='muted'>No questions stored.</p>",
+        passage_text_marked=expl_mod.sanitize_html(test["passage_text_marked"] or ""),
+        passage_div_html=expl_mod.sanitize_html(test["passage_div_html"] or ""),
+        passage_html=expl_mod.sanitize_html(passage_html_str) or "<p class='muted'>No questions stored.</p>",
         answers_json=json.dumps(answers).replace("</", "<\\/"),
         global_q_json=json.dumps(global_q_map).replace("</", "<\\/"),
         section_label=section_label, minutes=minutes,
@@ -1638,7 +1650,7 @@ def test_page(test_id):
 
 # ─── Official Forms tab — full released ACT tests imported from PDFs ──
 OFFICIAL_HTML = """
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230d0d0f%22/><text x=%2232%22 y=%2244%22 font-family=%22Georgia,serif%22 font-size=%2240%22 font-weight=%22600%22 fill=%22%23e8a33d%22 text-anchor=%22middle%22>F</text></svg>">
 <title>Official ACT Forms — Forma</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin><link rel="preconnect" href="https://cdn.fontshare.com" crossorigin><link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">

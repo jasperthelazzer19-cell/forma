@@ -42,6 +42,7 @@ def _stats():
 # Mono-heavy. Animated counters. "Console" panel showing real data.
 # ─────────────────────────────────────────────────────────────────────────────
 V1_HTML = r"""<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Forma — The complete ACT, drilled.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -246,7 +247,7 @@ footer{
   <div class="console" id="inventory">
     <div class="console-head">
       <div class="dots"><i></i><i></i><i></i></div>
-      <span class="mono">crackab.db / inventory.snapshot()</span>
+      <span class="mono">forma.db / inventory.snapshot()</span>
       <div class="right">
         <span class="stat"><i class="live"></i> LIVE</span>
         <span class="stat">v2.4.0</span>
@@ -351,6 +352,7 @@ footer{
 # Big Fraunces serif. Chapter-paced. Amber accent on near-black.
 # ─────────────────────────────────────────────────────────────────────────────
 V2_HTML = r"""<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Forma — A better way to study for the ACT.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -588,6 +590,7 @@ footer{
 # Pure black. CSS-3D bubble sheet hero. Dramatic lighting. Big sans.
 # ─────────────────────────────────────────────────────────────────────────────
 V3_HTML = r"""<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Forma — Built for the score.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -909,6 +912,7 @@ footer{
 # Modern bento grid hero with live mini-demos. Subtle motion in every tile.
 # ─────────────────────────────────────────────────────────────────────────────
 V4_HTML = r"""<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Forma — Master the ACT, methodically.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1378,6 +1382,8 @@ a{color:inherit;text-decoration:none}
 .logo .dot{color:var(--amber);font-size:0.55em;vertical-align:0.35em;margin-left:2px;font-family:var(--sans)}
 .nav-links{display:flex;align-items:center;gap:32px;font-size:13px;color:var(--fg-2);letter-spacing:0.04em;text-transform:uppercase;font-family:var(--sans);font-weight:500}
 .nav-links a:hover{color:var(--amber)}
+/* On phones the three nav links crowd out the CTA — hide them, keep the CTA. */
+@media(max-width:640px){.nav-links{display:none}}
 .btn-go{
   padding:9px 18px;border-radius:0;font-size:12.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;
   background:var(--paper);color:var(--bg);display:inline-flex;align-items:center;gap:8px;
