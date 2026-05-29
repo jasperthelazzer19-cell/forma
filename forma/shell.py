@@ -292,8 +292,7 @@ SIDEBAR_TMPL = """<aside class="sb">
     <a class="nav-item {a_generated}" href="/generated"><span class="ic">◇</span>AI-generated</a>
   </div>
   <div class="sb-foot">
-    <div class="avatar">F</div>
-    <div class="you">Forma</div>
+    {account}
   </div>
 </aside>"""
 
@@ -339,4 +338,30 @@ def shell_sidebar(active=None, counts=None):
     cls["c_math"]    = counts.get("math", "")
     cls["c_reading"] = counts.get("reading", "")
     cls["c_science"] = counts.get("science", "")
+    cls["account"]   = _account_html()
     return SIDEBAR_TMPL.format(**cls)
+
+
+def _account_html():
+    """Auth-aware sidebar footer: account + upgrade/log-out, or log-in/sign-up."""
+    try:
+        from forma import billing
+        u = billing.current_user()
+    except Exception:
+        u = None
+    _ls = "color:var(--fg-2);text-decoration:none;font-size:12px"
+    if not u:
+        return (f'<a href="/login" style="{_ls}">Log in</a>'
+                f'<span style="opacity:.4;font-size:12px"> · </span>'
+                f'<a href="/signup" style="{_ls}">Sign up</a>')
+    initial = (u["email"][:1] or "?").upper()
+    email = u["email"]
+    if u.get("is_paid"):
+        badge = '<span style="color:#e8a33d;font-size:11px;font-weight:600">✦ Premium</span>'
+    else:
+        badge = f'<a href="/upgrade" style="color:#e8a33d;text-decoration:none;font-size:11px;font-weight:600">Upgrade →</a>'
+    return (f'<div class="avatar">{initial}</div>'
+            f'<div class="you" style="display:flex;flex-direction:column;line-height:1.3">'
+            f'<span style="font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{email}</span>'
+            f'{badge}</div>'
+            f'<a href="/logout" title="Log out" style="margin-left:auto;{_ls}">⏻</a>')

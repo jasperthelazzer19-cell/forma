@@ -1793,6 +1793,8 @@ features.register(app)
 landing.register(app)
 diagnostic.register(app)
 drill.register(app)
+from forma import billing
+billing.register(app)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

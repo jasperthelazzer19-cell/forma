@@ -11,10 +11,11 @@ import time
 from collections import defaultdict
 from datetime import datetime
 
-from flask import g, render_template_string, request, jsonify, abort, redirect
+from flask import g, render_template_string, request, jsonify, abort, redirect, make_response
 
 from forma.db import db
 from forma.shell import SECTION_LABELS, PALETTE_HTML, shell_sidebar
+from forma import billing
 
 _CRUMB_TITLES = {
     "home": "Today", "official": "Official forms", "generated": "AI-generated",
@@ -965,13 +966,30 @@ def predict_score(pct_by_section):
 
 
 def api_tutor():
-    """POST /api/tutor — explain a specific question with AI."""
-    import os, re
+    """POST /api/tutor — explain a specific question with AI.
+    Free users get 3 explanations/day; Premium is unlimited."""
+    import os
     data = request.get_json(silent=True) or {}
     test_id = data.get("test_id")
     q_num = data.get("q_num")
     if not test_id or q_num is None:
         return jsonify({"error": "missing test_id or q_num"}), 400
+    # Daily free limit (Premium = unlimited). new_cookie is set on the response
+    # so anonymous free users get a stable per-day counter.
+    allowed, remaining, new_cookie = billing.tutor_allowance()
+
+    def finish(payload, status=200, count=False):
+        if count:
+            billing.record_tutor_use()
+        resp = make_response(jsonify(payload), status)
+        if new_cookie:
+            resp.set_cookie("fv_id", new_cookie, max_age=60 * 60 * 24 * 365, samesite="Lax")
+        return resp
+
+    if not allowed:
+        return finish({"error": "limit", "limit_reached": True,
+                       "message": "You've used your 3 free AI explanations today. Upgrade to Premium for unlimited.",
+                       "upgrade_url": "/upgrade"}, 402)
     cur = db().cursor()
     row = cur.execute(
         "SELECT options_json, correct_answer FROM questions WHERE test_id=? AND q_num=?",
@@ -985,7 +1003,7 @@ def api_tutor():
     correct = row["correct_answer"]
     # If we already have an AI-generated explanation stored, return it
     if explanation:
-        return jsonify({"explanation": explanation, "cached": True})
+        return finish({"explanation": explanation, "cached": True}, count=True)
     # Otherwise call OpenAI. Requires OPENAI_API_KEY in the environment (set it
     # in Railway). Degrade gracefully instead of 500-ing if it's not configured.
     if not os.environ.get("OPENAI_API_KEY"):
@@ -1003,7 +1021,7 @@ def api_tutor():
             ],
         )
         out = r.choices[0].message.content.strip()
-        return jsonify({"explanation": out, "cached": False})
+        return finish({"explanation": out, "cached": False}, count=True)
     except Exception as e:
         return jsonify({"error": str(e)[:200]}), 500
 
@@ -1562,8 +1580,8 @@ def register(app):
     app.add_url_rule("/api/bookmark", "api_bookmark", api_bookmark, methods=["POST"])
     app.add_url_rule("/api/bookmarks", "api_bookmarks_for_test", api_bookmarks_for_test)
     app.add_url_rule("/dashboard", "dashboard", dashboard)
-    app.add_url_rule("/review", "review", review)
-    app.add_url_rule("/adaptive", "adaptive", adaptive)
+    app.add_url_rule("/review", "review", billing.premium_required("The review queue")(review))
+    app.add_url_rule("/adaptive", "adaptive", billing.premium_required("The adaptive engine")(adaptive))
     app.add_url_rule("/full-test", "full_test_list", full_test_list)
     app.add_url_rule("/full-test/<form_code>", "full_test_run", full_test_run)
     app.add_url_rule("/generated", "generated_list", generated_list)

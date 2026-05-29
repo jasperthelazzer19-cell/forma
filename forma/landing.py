@@ -1302,7 +1302,7 @@ footer{
         <li>Adaptive engine + score predictor</li>
         <li>Wrong-answer review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-p" href="/app">Upgrade →</a></div>
+      <div class="cta-row"><a class="btn-p" href="/upgrade">Upgrade →</a></div>
     </div>
   </div>
 </section>
@@ -1926,7 +1926,7 @@ footer .right{justify-self:end}
         <li><b>Adaptive engine</b> — drills only your weak topics</li>
         <li><b>Live score predictor</b> + wrong-answer review queue</li>
       </ul>
-      <div class="cta-row"><a class="btn-p" href="/app">Upgrade →</a></div>
+      <div class="cta-row"><a class="btn-p" href="/upgrade">Upgrade →</a></div>
     </div>
   </div>
 </section>
