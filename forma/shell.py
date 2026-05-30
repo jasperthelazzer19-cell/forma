@@ -291,6 +291,10 @@ SIDEBAR_TMPL = """<aside class="sb">
     <a class="nav-item {a_official}" href="/official"><span class="ic">★</span>Official forms</a>
     <a class="nav-item {a_generated}" href="/generated"><span class="ic">◇</span>AI-generated</a>
   </div>
+  <div class="sb-section">
+    <div class="sb-section-label">More</div>
+    <a class="nav-item" href="https://admit.up.railway.app" target="_blank" rel="noopener"><span class="ic">◈</span>College list →</a>
+  </div>
   <div class="sb-foot">
     {account}
   </div>
